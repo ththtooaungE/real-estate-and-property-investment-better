@@ -8,14 +8,14 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Services\FileService;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
     protected $fileService;
 
     public function __construct(FileService $fileService)

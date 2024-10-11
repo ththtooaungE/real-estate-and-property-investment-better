@@ -8,14 +8,14 @@ use App\Http\Requests\BoostUpdateRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Boost;
 use App\Models\Post;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class BoostController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
 
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-trait ApiResponseFormatter
+trait ResponseFormattable
 {
     public function successResponse($status, $message, $statusCode, $data = [])
     {

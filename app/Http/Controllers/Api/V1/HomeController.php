@@ -9,14 +9,14 @@ use App\Http\Resources\PostResource;
 use App\Models\Advertisement;
 use App\Models\Blog;
 use App\Models\Post;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
 
     public function home()
     {
@@ -44,7 +44,8 @@ class HomeController extends Controller
         return $this->successResponse('success', 'Successfully retrived', 200, $data);
     }
 
-    public function boostEqualizer(array $ids) {
+    public function boostEqualizer(array $ids)
+    {
         DB::table('boosts')->whereIn('post_id', $ids)->increment('equalizer');        // Update the equalizer for all boosts associated with the retrieved post IDs
     }
 }

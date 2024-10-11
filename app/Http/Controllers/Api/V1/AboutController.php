@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AboutStoreRequest;
 use App\Models\About;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AboutController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
     /**
      * Display a listing of the resource.
      */

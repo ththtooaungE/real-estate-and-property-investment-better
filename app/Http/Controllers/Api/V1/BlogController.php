@@ -8,7 +8,7 @@ use App\Http\Requests\BlogUpdateRequest;
 use App\Http\Resources\BlogResource;
 use App\Models\Blog;
 use App\Services\FileService;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
     private $paginationLimit = 10;
     private $fileService;
 

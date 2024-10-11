@@ -7,7 +7,7 @@ use App\Http\Requests\UserDeleteRequest;
 use App\Http\Requests\UserUpdateStatusRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
     protected $paginationLimit = 10;
 
     public function index(Request $request)

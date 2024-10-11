@@ -12,14 +12,14 @@ use App\Models\Photo;
 use App\Models\Post;
 use App\Models\User;
 use App\Services\PostService;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
 
     private $photoLimit = 10;
     private $boostedPerPage = 3;

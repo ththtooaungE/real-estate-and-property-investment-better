@@ -10,7 +10,7 @@ use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\ForgotPassword;
 use App\Models\User;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
 
     public function register(RegisterRequest $request)
     {

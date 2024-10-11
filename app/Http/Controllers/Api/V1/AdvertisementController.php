@@ -8,7 +8,7 @@ use App\Http\Requests\AdvertisementUpdateRequest;
 use App\Http\Resources\AdvertisementResource;
 use App\Models\Advertisement;
 use App\Services\FileService;
-use App\Traits\ApiResponseFormatter;
+use App\Traits\ResponseFormattable;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AdvertisementController extends Controller
 {
-    use ApiResponseFormatter;
+    use ResponseFormattable;
 
     private $maxNum = 5;
     private $fileService;
