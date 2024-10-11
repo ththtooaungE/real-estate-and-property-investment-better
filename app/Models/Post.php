@@ -45,7 +45,7 @@ class Post extends Model
     {
         $query->select('posts.*', 'boosts.equalizer')
             ->join('boosts', 'posts.id', '=', 'boosts.post_id')
-            ->where('boosts.end', '>', now()->format('Y-m-d H:i:s'))
+            ->where('boosts.end', '>', now())
             ->orderBy('boosts.equalizer', 'asc')
             ->distinct();
     }
