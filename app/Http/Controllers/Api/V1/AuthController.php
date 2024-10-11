@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\ForgotPassword;
 use App\Models\User;
@@ -28,19 +30,12 @@ class AuthController extends Controller
 
             $validated['password'] = Hash::make($validated['password']);
             if ($validated['is_agent'] ?? false) $validated['status'] = 'pending';
-            // return $validated;
             User::create($validated);
 
-            return response()->json([
-                'message' => 'Successfully Registered!',
-                'data' => [],
-                'meta' => []
-            ], 200);
+            return $this->successResponse('success', 'Successfully Registered!', 200);
         } catch (\Exception $e) {
-            logger()->error($e);
-            return response()->json([
-                'message' => 'Something went wrong',
-            ], 500);
+            Log::info($e);
+            return $this->errorResponse('fail', 'Something went wrong', 500);
         }
     }
 
@@ -48,7 +43,6 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validated();
-
             $user = User::where('email', $validated['email'])->first();
 
             if (!$user) {
@@ -67,10 +61,9 @@ class AuthController extends Controller
                 $user->token = $user->createToken("user-token")->plainTextToken;
             }
 
-
             return $this->successResponse('success', 'Successfully Logged In!', 200, new UserResource($user));
         } catch (\Exception $e) {
-            logger()->error($e);
+            Log::info($e);
             return response()->json(['message' => 'Something went wrong',], 500);
         }
     }
@@ -78,40 +71,52 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        return $this->successResponse('success', 'Successfully logged out!', 200, []);
+        try {
+            $request->user()->currentAccessToken()->delete();
+
+            return $this->successResponse('success', 'Successfully logged out!', 200);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->errorResponse('fail', 'Something went wrong', 500);
+        }
     }
 
 
     public function refresh()
     {
-        $user = User::find(Auth::user()->id);
-        $user->tokens()->delete();
-        return $this->successResponse('success', 'All Tokens are successfull refreshed!', 200, []);
+        try {
+            /**@var \App/Model/User */
+            $user = Auth::user();
+            $user->tokens()->delete();
+
+            return $this->successResponse('success', 'All Tokens are successfull refreshed!', 200);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->errorResponse('fail', 'Something went wrong', 500);
+        }
     }
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email'
-        ]);
+        try {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        DB::table('password_reset_tokens')
-            ->where('email', $request->input('email'))
-            ->delete();
+            $token = rand(100001, 999999);
+            DB::table('password_reset_tokens')
+                ->insert([
+                    'email' => $request->email,
+                    'token' => $token,
+                    'expired_at' => now()->addMinutes(10),
+                    'created_at' => now()
+                ]);
 
-        $token = rand(100001, 999999);
-        DB::table('password_reset_tokens')
-            ->insert([
-                'email' => $request->input('email'),
-                'token' => $token,
-                'expired_at' => now()->addMinutes(10),
-                'created_at' => now()
-            ]);
+            Mail::to($request->input('email'))->send(new ForgotPassword($token));
 
-        Mail::to($request->input('email'))->send(new ForgotPassword($token));
-
-        return $this->successResponse('success', 'Reset Password Link is sent to your email!', 200);
+            return $this->successResponse('success', 'Reset Password Link is sent to your email!', 200);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->errorResponse('fail', 'Something went wrong', 500);
+        }
     }
 
     public function verifyResetPasswordToken($token)
@@ -134,17 +139,12 @@ class AuthController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
         try {
-            $request->validate([
-                'password' => 'required|string|min:6|max:20|confirmed',
-                'password_confirmation' => 'required',
-                'token' => 'required|string'
-            ]);
-
+            $validated = $request->validated();
             $valid_token = DB::table('password_reset_tokens')
-                ->where('token', $request->input('token'))
+                ->where('token', $validated['token'])
                 ->where('expired_at', '>', now())
                 ->first();
 
@@ -152,11 +152,9 @@ class AuthController extends Controller
 
             $user = User::where('email', $valid_token->email)->first();
 
-            if ($user->update(['password' => Hash::make($request->input('password'))])) {
-
+            if ($user->update(['password' => Hash::make($validated['password'])])) {
                 DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->delete();
-                DB::table('password_reset_tokens')->where('token', $request->input('token'))->delete();
-
+                DB::table('password_reset_tokens')->where('token', $validated['token'])->delete();
                 return $this->successResponse('success', 'Your password is updated!', 200);
             } else {
                 return $this->errorResponse('fail', 'Something went wrong!', 500);

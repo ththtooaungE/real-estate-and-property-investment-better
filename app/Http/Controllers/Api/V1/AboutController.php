@@ -33,9 +33,8 @@ class AboutController extends Controller
         try {
             $about = About::create($request->validated());
             if ($about) {
-                return $this->successResponse('success', 'About successfully updated!', 200, $about);
+                return $this->successResponse('success', 'About successfully created!', 201, $about);
             }
-            return $this->successResponse('success', 'About successfully created!', 201, $about);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return $this->errorResponse('fail', $e->getMessage(), 500);
