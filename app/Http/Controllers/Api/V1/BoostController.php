@@ -50,7 +50,7 @@ class BoostController extends Controller
                 return $this->successResponse('fail', 'Wrong Boost Record or Expired!', 422);
 
             if ($boost->update($request->validated()))
-                return $this->successResponse('success', 'Boost successfully updated', 204);
+                return $this->successResponse('success', 'Boost successfully updated', 200);
         } catch (Exception $e) {
             Log::error($e);
             return $this->errorResponse('fail', 'Something went wrong!', 500);
@@ -72,7 +72,7 @@ class BoostController extends Controller
                 return $this->successResponse('fail', 'Wrong Boost Record or Expired!', 422);
 
             if ($boost->delete())
-                return $this->successResponse('success', 'Boost successfully deleted!', 204);
+                return $this->successResponse('success', 'Boost successfully deleted!', 200);
         } catch (Exception $e) {
             Log::error($e);
             return $this->errorResponse('fail', 'Something went wrong!', 500);

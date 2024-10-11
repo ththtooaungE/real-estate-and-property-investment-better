@@ -16,12 +16,17 @@ use Illuminate\Support\Facades\Log;
 class UserController extends Controller
 {
     use ResponseFormattable;
-    protected $paginationLimit = 10;
+    protected $perPage;
+
+    function __construct()
+    {
+        $this->perPage = config('const.users.perPage');
+    }
 
     public function index(Request $request)
     {
         try {
-            $perPage = $request->query('per_page') ?? $this->paginationLimit;
+            $perPage = $request->per_page ?? $this->perPage;
             $users = UserResource::collection(
                 User::latest('id')
                     ->filter(request(['search']))
@@ -51,7 +56,7 @@ class UserController extends Controller
     {
         try {
             if ($user->delete()) { // cascade on delete with posts
-                return $this->successResponse('success', 'User is successfully deleted!', 204, []);
+                return $this->successResponse('success', 'User is successfully deleted!', 200);
             }
         } catch (Exception $e) {
             Log::error($e);
@@ -65,7 +70,7 @@ class UserController extends Controller
     public function agentIndex(Request $request)
     {
         try {
-            $perPage = $request->query('perPage') ?? $this->paginationLimit;
+            $perPage = $request->query('perPage') ?? $this->perPage;
             $agents = UserResource::collection(
                 User::filter(request(['search', 'status']))->where('is_agent', true)->latest('id')->paginate($perPage)
             );
@@ -122,9 +127,7 @@ class UserController extends Controller
     public function countAgents()
     {
         try {
-            $count = User::where('is_agent', true)
-                ->where('status', 'accepted')
-                ->count();
+            $count = User::isAgent()->count();
             return $this->successResponse('success', 'Agent Number is successfully retrieved!', 200, $count);
         } catch (Exception $e) {
             Log::error($e);

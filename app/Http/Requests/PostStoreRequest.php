@@ -38,4 +38,9 @@ class PostStoreRequest extends FormRequest
             'photos.*' => 'required_with:images|string'
         ];
     }
+
+    protected function prepareForValidation()
+    {
+        $this->merge(['user_id' => auth()->user()->id]);
+    }
 }

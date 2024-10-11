@@ -76,4 +76,10 @@ class User extends Authenticatable
     {
         $query->where(['is_agent' => true, 'id' => $id]);
     }
+
+    public function scopeIsAgent($query): void
+    {
+        $query->where('is_agent', true)
+            ->where('status', 'accepted');
+    }
 }

@@ -10,20 +10,21 @@ use App\Models\Advertisement;
 use App\Services\FileService;
 use App\Traits\ResponseFormattable;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class AdvertisementController extends Controller
 {
     use ResponseFormattable;
 
-    private $maxNum = 5;
+    private $advLimit;
+    private $perPage;
     private $fileService;
 
     public function __construct(FileService $fileService)
     {
         $this->fileService = $fileService;
+        $this->advLimit = config('const.advertisements.advertisementLimit');
+        $this->perPage = config('const.advertisements.perPage');
     }
     /**
      * Display a listing of the resource.
@@ -31,11 +32,11 @@ class AdvertisementController extends Controller
     public function index()
     {
         try {
-            $per_page = request()->query('per_page') ?? 10;
+            $perPage = request('per_page') ?? $this->perPage;
 
             $advertisements = Advertisement::latest('id')
                 ->filter(request(['is_active']))
-                ->paginate($per_page)
+                ->paginate($perPage)
                 ->withQueryString();
 
             return $this->paginatedSuccessResponse('success', 'Advertisements successfully retrieved!', 200, AdvertisementResource::collection($advertisements));
@@ -52,8 +53,9 @@ class AdvertisementController extends Controller
     {
         try {
             $validated = $request->validated();
+            $quantity = Advertisement::where('end', '>', now())->count();
 
-            if ((Advertisement::where('end', '>', now())->count()) >= $this->maxNum) {
+            if ($quantity >= $this->advLimit) {
                 return $this->errorResponse('fail', 'Limit Excedded!', 422);
             }
 
@@ -93,13 +95,10 @@ class AdvertisementController extends Controller
             if ($advertisement->end < now()) return $this->errorResponse('fail', 'Already Expired', 422);
 
             $validated = $request->validated();
-            if ($validated['photo'] ?? null) {
-                $this->fileService->deletePhoto($advertisement->photo);
-                $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'advertisements');
-            }
+            $validated['photo'] = $this->handlePhotoUpload($advertisement, $validated['photo'] ?? null);
 
             if ($advertisement->update($validated)) {
-                return $this->successResponse('success', 'Advertisement successfully updated!', 204);
+                return $this->successResponse('success', 'Advertisement successfully updated!', 200);
             }
         } catch (Exception $e) {
             Log::error($e);
@@ -116,10 +115,20 @@ class AdvertisementController extends Controller
             $this->fileService->deletePhoto($advertisement->photo);
             $advertisement->delete();
 
-            return $this->successResponse('success', 'Advertisement successfully deleted!', 204);
+            return $this->successResponse('success', 'Advertisement successfully deleted!', 200);
         } catch (Exception $e) {
             Log::error($e);
             return $this->errorResponse('fail', 'Something went wrong!', 500);
         }
+    }
+
+
+    private function handlePhotoUpload($advertisement, $photo)
+    {
+        if ($photo) {
+            $this->fileService->deletePhoto($advertisement->photo);
+            return $this->fileService->storePhoto($photo, 'advertisements');
+        }
+        return $advertisement->photo;
     }
 }

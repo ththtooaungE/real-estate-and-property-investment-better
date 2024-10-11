@@ -23,7 +23,7 @@ class ProfileController extends Controller
         $this->fileService = $fileService;
     }
     /**
-     * Users can access their profiles
+     * Show a resource
      */
     public function show()
     {
@@ -37,26 +37,25 @@ class ProfileController extends Controller
 
 
     /**
-     * Users can update their profiles
+     * Update a resource
      */
     public function update(UserUpdateRequest $request)
     {
         try {
-            /**
-             * @var \App\Models\User $user
-             */
+            /**@var \App\Models\User $user*/
             $user = Auth::user();
             if ($user->update($request->validated())) {
                 return $this->successResponse('success', 'Profile is successfully updated!', 200);
             }
         } catch (Exception $e) {
-            Log::error('User update failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
-
+            Log::error($e);
             return $this->errorResponse('fail', 'Something went wrong!', 500);
         }
     }
 
-
+    /**
+     * Update a resource
+     */
     public function updatePhoto(ProfileUpdateRequest $request)
     {
         try {

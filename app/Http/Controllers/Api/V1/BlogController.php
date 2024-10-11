@@ -17,12 +17,13 @@ use Illuminate\Support\Facades\Storage;
 class BlogController extends Controller
 {
     use ResponseFormattable;
-    private $paginationLimit = 10;
+    private $perPage;
     private $fileService;
 
     public function __construct(FileService $fileService)
     {
         $this->fileService = $fileService;
+        $this->perPage = config('const.posts.perPage');
     }
     /**
      * Display a listing of the resource.
@@ -40,7 +41,7 @@ class BlogController extends Controller
             $blogs = Blog::with('user')
                 ->orderBy($sortBy, $order)
                 ->filter(request(['search']))
-                ->paginate(request('per_page') ?? $this->paginationLimit)
+                ->paginate(request('per_page') ?? $this->perPage)
                 ->withQueryString();
 
             return $this->paginatedSuccessResponse('success', 'Blogs successfully retrieved!', 200, BlogResource::collection($blogs));
@@ -57,7 +58,7 @@ class BlogController extends Controller
     {
         try {
             $validated = $request->validated();
-            $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'blogs');
+            $validated['photo'] = $this->fileService->storePhoto($validated['photo'], 'blogs');
             $validated['user_id'] = auth()->user()->id;
 
             $blog = Blog::create($validated);
@@ -94,11 +95,11 @@ class BlogController extends Controller
 
             if ($validated['photo'] ?? null) {
                 $this->fileService->deletePhoto($blog->photo);
-                $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'blogs');
+                $validated['photo'] = $this->fileService->storePhoto($validated['photo'], 'blogs');
             }
 
             if ($blog->update($validated)) {
-                return $this->successResponse('success', 'Blog successfully updated!', 204);
+                return $this->successResponse('success', 'Blog successfully updated!', 200);
             }
         } catch (Exception $e) {
             Log::error($e);
@@ -115,7 +116,7 @@ class BlogController extends Controller
             $this->fileService->deletePhoto($blog->photo);
 
             if ($blog->delete()) {
-                return $this->successResponse('success', 'Blog successfully deleted!', 204);
+                return $this->successResponse('success', 'Blog successfully deleted!', 200);
             }
         } catch (Exception $e) {
             Log::error($e);
