@@ -25,7 +25,7 @@ class ProfileController extends Controller
     /**
      * Users can access their profiles
      */
-    public function getProfile()
+    public function show()
     {
         try {
             return $this->successResponse('success', 'Profile is successfully retrived!', 200, new UserResource(auth()->user()));
@@ -39,17 +39,19 @@ class ProfileController extends Controller
     /**
      * Users can update their profiles
      */
-    public function updateProfile(UserUpdateRequest $request)
+    public function update(UserUpdateRequest $request)
     {
         try {
-            $user = User::find(Auth::user()->id);
-            $data = $request->validated();
-
-            if ($user->update($data)) {
-                return $this->successResponse('success', 'Profile is successfully updated!', 204, []);
+            /**
+             * @var \App\Models\User $user
+             */
+            $user = Auth::user();
+            if ($user->update($request->validated())) {
+                return $this->successResponse('success', 'Profile is successfully updated!', 200);
             }
         } catch (Exception $e) {
-            Log::error($e);
+            Log::error('User update failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
             return $this->errorResponse('fail', 'Something went wrong!', 500);
         }
     }
@@ -58,18 +60,15 @@ class ProfileController extends Controller
     public function updatePhoto(ProfileUpdateRequest $request)
     {
         try {
-
             $photo = auth()->user()->photo;
-
-            if ($photo) {
-                $this->fileService->deletePhoto($photo);
-            }
+            if ($photo) $this->fileService->deletePhoto($photo);
 
             $path = $this->fileService->storePhoto($request->input('photo'), 'profiles');
-            $user = User::find(Auth::user()->id);
 
+            /**@var \App\Models\User $user*/
+            $user = Auth::user();
             if ($user->update(['photo' => $path])) {
-                return $this->successResponse('success', 'Profile Photo is successfully updated!', 204, []);
+                return $this->successResponse('success', 'Profile Photo is successfully updated!', 200);
             }
         } catch (Exception $e) {
             Log::error($e);

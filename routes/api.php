@@ -36,53 +36,66 @@ Route::prefix('v1')->group(function () {
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
-    Route::delete('auth/logout', [AuthController::class, 'logout']);  
+    /**
+     * admin
+     */
+    Route::middleware('admin')->group(function () {
+
+        Route::apiResource('users', UserController::class)->only(['index', 'show', 'destroy']);
+        Route::get('agents/count', [UserController::class, 'countAgents']);
+        Route::put('agents/update-status/{id}', [UserController::class, 'updateAgentStatus']);
+
+        Route::post('posts/{post}/add-boost', [BoostController::class, 'store']);
+        Route::patch('posts/{post}/update-boost/{boost_id}', [BoostController::class, 'update']);
+        Route::delete('posts/{post}/delete-boost/{boost_id}', [BoostController::class, 'destroy']);
+
+        Route::apiResource('blogs', BlogController::class)->only(['store', 'update', 'destroy']);
+
+        Route::apiResource('advertisements', AdvertisementController::class)->only(['store', 'update', 'destroy']);
+
+        Route::apiResource('abouts', AboutController::class)->only(['store', 'update']);
+
+        Route::patch('posts/decline/{post}', [PostController::class, 'decline']);
+    });
+
 
     /**
-     * profile
+     * post owner
      */
-    Route::get('profile', [ProfileController::class, 'getProfile']);
-    Route::put('profile', [ProfileController::class, 'updateProfile']);
+    Route::middleware('post.owner')->group(function () {
+        Route::apiResource('posts', PostController::class)->only(['update', 'destroy']);
+        Route::post('posts/{post}/add-photo', [PostController::class, 'addPhoto']);
+        Route::delete('posts/{post}/remove-photo/{photo}', [PostController::class, 'removePhoto']);
+    });
+
+
+    /**
+     * agent or admin
+     */
+    Route::middleware('admin.or.agent')->group(function () {
+        Route::post('posts', [PostController::class, 'store']);
+    });
+
+
+    /**
+     * all users
+     */
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::put('profile', [ProfileController::class, 'update']);
     Route::put('profile/image-update', [ProfileController::class, 'updatePhoto']);
 
-    /**
-     * users
-     */
     Route::get('agents', [UserController::class, 'agentIndex']);
-    Route::get('agents/count', [UserController::class, 'countAgents']);
     Route::get('agents/{id}', [UserController::class, 'agentShow']);
-    Route::put('agents/update-status/{id}', [UserController::class, 'updateStatus']);
 
-
-    Route::get('users', [UserController::class, 'index']);
-    Route::get('users/{user}', [UserController::class, 'show']);
-    Route::delete('users/{user}', [UserController::class, 'destroy']);
-
-    /**
-     * posts
-     */
-    Route::patch('posts/decline/{post}', [PostController::class, 'decline']);
-    Route::apiResource('posts', PostController::class);
     Route::get('agent-posts/{user}', [PostController::class, 'agentPosts']);
-    Route::post('posts/{post}/add-photo', [PostController::class, 'addPhoto']);
-    Route::delete('posts/{post}/remove-photo/{photo}', [PostController::class, 'removePhoto']);
 
-    /**
-     * boosts
-     */
-    Route::post('posts/{post}/add-boost', [BoostController::class, 'store']);
-    Route::patch('posts/{post}/update-boost/{boost_id}', [BoostController::class, 'update']);
-    Route::delete('posts/{post}/delete-boost/{boost_id}', [BoostController::class, 'destroy']);
+    Route::apiResource('posts', PostController::class)->only(['index', 'show']);
 
-    /**
-     * blogs
-     */
-    Route::apiResource('blogs', BlogController::class);
-    Route::apiResource('advertisements', AdvertisementController::class);
+    Route::apiResource('blogs', BlogController::class)->only(['index', 'show']);
 
-    /**
-     * about
-     */
-    Route::apiResource('abouts', AboutController::class)->except(['store', 'update']);
-    Route::post('abouts', [AboutController::class, 'upsert']);
+    Route::apiResource('abouts', AboutController::class)->only(['index', 'show']);
+
+    Route::apiResource('advertisements', AdvertisementController::class)->only(['index', 'show']);
+
+    Route::delete('auth/logout', [AuthController::class, 'logout']);
 });

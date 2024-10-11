@@ -21,9 +21,6 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            if (!auth()->user()->is_admin)
-                return $this->errorResponse('fail', 'Must be Admin!', 401);
-
             $perPage = $request->query('per_page') ?? $this->paginationLimit;
             $users = UserResource::collection(
                 User::latest('id')
@@ -42,9 +39,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         try {
-            if (!auth()->user()->is_admin)
-                return $this->errorResponse('fail', 'Must be Admin!', 401);
-
             return $this->successResponse('success', 'User is successfully retrieved!', 200, new UserResource($user));
         } catch (Exception $e) {
             Log::error($e);
@@ -89,8 +83,8 @@ class UserController extends Controller
     public function agentShow(String $id)
     {
         try {
-            $agent = User::where(['is_agent' => true, 'id' => $id])->first();
-            if (! $agent) throw new ModelNotFoundException('Agent Not Found!', 404);
+            $agent = User::getAgent($id)->first();
+            if (!$agent) throw new ModelNotFoundException('Agent Not Found!', 404);
 
             return $this->successResponse('success', 'Agent is successfully retrieved!', 200, new UserResource($agent));
         } catch (ModelNotFoundException $e) {
@@ -102,24 +96,20 @@ class UserController extends Controller
     }
 
 
-    public function updateStatus(UserUpdateStatusRequest $request, String $id)
+    public function updateAgentStatus(UserUpdateStatusRequest $request, String $id)
     {
         try {
-            $agent = User::where(['is_agent' => true, 'id' => $id])->first();
+            $agent = User::getAgent($id)->first();
             if (!$agent) throw new ModelNotFoundException('Agent Not Found!', 404);
 
-            switch ($request->input('status')) {
-                case 'declined':
-                    $status = $agent->delete();
-                    break;
+            if ($request->status === 'declined') $status = $agent->delete();
+            else $agent->update(['status' => $status = $request->status]);
 
-                default:
-                    $status = $agent->update(['status' => $request->input('status')]);
-                    break;
-            }
-            if ($status)
+            if ($status) {
                 return $this->successResponse('success', 'Agent Status is successfully updated!', 200);
-            else throw new Exception('Something went wrong!');
+            } else {
+                throw new Exception('Something went wrong!');
+            }
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse('fail', 'Agent Not Found!', 404);
         } catch (Exception $e) {

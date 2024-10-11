@@ -56,11 +56,11 @@ class BlogController extends Controller
     public function store(BlogStoreRequest $request)
     {
         try {
-            $validated_data = $request->validated();
-            $validated_data['photo'] = $this->fileService->storePhoto(data: $validated_data['photo'], location: 'blogs');
-            $validated_data['user_id'] = auth()->user()->id;
+            $validated = $request->validated();
+            $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'blogs');
+            $validated['user_id'] = auth()->user()->id;
 
-            $blog = Blog::create($validated_data);
+            $blog = Blog::create($validated);
 
             if ($blog) {
                 return $this->successResponse('success', 'Blog successfully created!', 201, new BlogResource($blog));
@@ -90,14 +90,14 @@ class BlogController extends Controller
     public function update(BlogUpdateRequest $request, Blog $blog)
     {
         try {
-            $validated_data = $request->validated();
+            $validated = $request->validated();
 
-            if ($validated_data['photo'] ?? null) {
+            if ($validated['photo'] ?? null) {
                 $this->fileService->deletePhoto($blog->photo);
-                $validated_data['photo'] = $this->fileService->storePhoto(data: $validated_data['photo'], location: 'blogs');
+                $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'blogs');
             }
 
-            if ($blog->update($validated_data)) {
+            if ($blog->update($validated)) {
                 return $this->successResponse('success', 'Blog successfully updated!', 204);
             }
         } catch (Exception $e) {
@@ -112,10 +112,6 @@ class BlogController extends Controller
     public function destroy(Blog $blog)
     {
         try {
-            if (!auth()->user()->is_admin) {
-                return $this->errorResponse('fail', 'Must Be Admin!', 403);
-            }
-
             $this->fileService->deletePhoto($blog->photo);
 
             if ($blog->delete()) {

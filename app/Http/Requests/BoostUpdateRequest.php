@@ -12,13 +12,9 @@ class BoostUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
+        return true;
     }
 
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin!');
-    }
     /**
      * Get the validation rules that apply to the request.
      *

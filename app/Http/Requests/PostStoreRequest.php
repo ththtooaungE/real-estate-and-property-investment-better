@@ -14,17 +14,7 @@ class PostStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin || (auth()->user()->is_agent && auth()->user()->status === "accepted");
-    }
-
-    /**
-     * Handle a failed authorization attempt.
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin Or Accepted Agent!');
+        return true;
     }
 
     /**

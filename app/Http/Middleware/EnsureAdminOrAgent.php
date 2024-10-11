@@ -4,9 +4,10 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureAdminOrSelfUser
+class EnsureAdminOrAgent
 {
     /**
      * Handle an incoming request.
@@ -15,11 +16,10 @@ class EnsureAdminOrSelfUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->route('user');
-        if (auth()->user()->id !== $user->id || auth()->user()->is_admin) {
+        if (!auth()->user()->is_admin || !(auth()->user()->is_agent && auth()->user()->status === "accepted")) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'Must Be Admin or Self user!'
+                'message' => 'Must Be Admin or Agent!'
             ], 403);
         }
         return $next($request);

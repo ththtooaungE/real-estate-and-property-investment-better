@@ -11,7 +11,7 @@ class AboutStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
+        return true;
     }
 
     /**

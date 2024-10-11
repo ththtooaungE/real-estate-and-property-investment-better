@@ -14,12 +14,7 @@ class UserUpdateStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
-    }
-
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin Or Accepted Agent!');
+        return true;
     }
     /**
      * Get the validation rules that apply to the request.

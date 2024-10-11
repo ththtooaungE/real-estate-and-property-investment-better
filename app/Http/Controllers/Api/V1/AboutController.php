@@ -28,17 +28,24 @@ class AboutController extends Controller
         }
     }
 
-    public function upsert(AboutStoreRequest $request)
+    public function store(AboutStoreRequest $request)
     {
         try {
-            $about = About::latest('id')->first();
-
+            $about = About::create($request->validated());
             if ($about) {
-                $about->update($request->validated());
                 return $this->successResponse('success', 'About successfully updated!', 200, $about);
             }
+            return $this->successResponse('success', 'About successfully created!', 201, $about);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return $this->errorResponse('fail', $e->getMessage(), 500);
+        }
+    }
 
-            $about = About::create($request->validated());
+    public function update(AboutStoreRequest $request, About $about)
+    {
+        try {
+            $about->update($request->validated());
             return $this->successResponse('success', 'About successfully created!', 201, $about);
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -66,8 +73,6 @@ class AboutController extends Controller
     public function destroy(About $about)
     {
         try {
-            if (!auth()->user()->is_admin) return $this->errorResponse('fail', 'Must Be Admin!', 403);
-
             $about->delete();
             return $this->successResponse('success', 'About successfully deleted!', 204);
         } catch (Exception $e) {

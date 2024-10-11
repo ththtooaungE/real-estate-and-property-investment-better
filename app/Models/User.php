@@ -71,4 +71,9 @@ class User extends Authenticatable
             $query->where('phone', 'LIKE', '%' . $phone . '%');
         });
     }
+
+    public function scopeGetAgent($query, int $id): void
+    {
+        $query->where(['is_agent' => true, 'id' => $id]);
+    }
 }

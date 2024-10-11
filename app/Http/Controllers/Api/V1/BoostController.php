@@ -24,7 +24,7 @@ class BoostController extends Controller
     public function store(BoostCreateRequest $request, Post $post)
     {
         try {
-            if ($post->boosts()->where('end', '>', now()->format('Y-m-d H:i:s'))->count())
+            if ($post->boosts()->where('end', '>', now())->count())
                 return $this->errorResponse('fail', 'Active Boost existed!', 422);
 
             Boost::query()->update(['equalizer' => 0]);
@@ -44,7 +44,7 @@ class BoostController extends Controller
     public function update(BoostUpdateRequest $request, Post $post, string $boost_id)
     {
         try {
-            $boost = $post->boosts()->where('end', '>', now()->format('Y-m-d H:i:s'))->find($boost_id);
+            $boost = $post->boosts()->where('end', '>', now())->find($boost_id);
 
             if (!$boost)
                 return $this->successResponse('fail', 'Wrong Boost Record or Expired!', 422);
@@ -66,7 +66,7 @@ class BoostController extends Controller
             if (!auth()->user()->is_admin)
                 return $this->errorResponse('fail', 'Must Be Admin!', 403);
 
-            $boost = $post->boosts()->where('end', '>', now()->format('Y-m-d H:i:s'))->find($boost_id);
+            $boost = $post->boosts()->where('end', '>', now())->find($boost_id);
 
             if (!$boost)
                 return $this->successResponse('fail', 'Wrong Boost Record or Expired!', 422);

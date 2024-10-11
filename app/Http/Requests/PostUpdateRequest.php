@@ -13,17 +13,7 @@ class PostUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->id === $this->route('post')->user_id;
-    }
-
-    /**
-     * Handle a failed authorization attempt.
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin!');
+        return true;
     }
 
     /**

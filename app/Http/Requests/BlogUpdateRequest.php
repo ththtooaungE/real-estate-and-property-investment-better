@@ -12,18 +12,9 @@ class BlogUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
+        return true;
     }
 
-    /**
-     * Handle a failed authorization attempt.
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin!');
-    }
 
     /**
      * Get the validation rules that apply to the request.

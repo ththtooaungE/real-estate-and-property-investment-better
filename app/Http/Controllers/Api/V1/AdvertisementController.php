@@ -18,7 +18,7 @@ class AdvertisementController extends Controller
 {
     use ApiResponseFormatter;
 
-    private $maximumNumber = 5;
+    private $maxNum = 5;
     private $fileService;
 
     public function __construct(FileService $fileService)
@@ -51,14 +51,14 @@ class AdvertisementController extends Controller
     public function store(AdvertisementStoreRequest $request)
     {
         try {
-            $validated_data = $request->validated();
+            $validated = $request->validated();
 
-            if (Advertisement::where('end', '>', now()->format('Y-m-d H:m:s'))->count() >= $this->maximumNumber) {
+            if ((Advertisement::where('end', '>', now())->count()) >= $this->maxNum) {
                 return $this->errorResponse('fail', 'Limit Excedded!', 422);
             }
 
-            $validated_data['photo'] = $this->fileService->storePhoto(data: $validated_data['photo'], location: 'advertisements');
-            $advertisement = Advertisement::create($validated_data);
+            $validated['photo'] = $this->fileService->storePhoto($validated['photo'], 'advertisements');
+            $advertisement = Advertisement::create($validated);
 
             if ($advertisement) {
                 return $this->successResponse('success', 'Advertisement successfully created!', 201, new AdvertisementResource($advertisement));
@@ -90,16 +90,15 @@ class AdvertisementController extends Controller
     public function update(AdvertisementUpdateRequest $request, Advertisement $advertisement)
     {
         try {
-            if ($advertisement->end < now()->format('Y-m-d H:i:s'))
-                return $this->errorResponse('fail', 'Already Expired', 422);
+            if ($advertisement->end < now()) return $this->errorResponse('fail', 'Already Expired', 422);
 
-            $validated_data = $request->validated();
-            if ($validated_data['photo'] ?? null) {
+            $validated = $request->validated();
+            if ($validated['photo'] ?? null) {
                 $this->fileService->deletePhoto($advertisement->photo);
-                $validated_data['photo'] = $this->fileService->storePhoto(data: $validated_data['photo'], location: 'advertisements');
+                $validated['photo'] = $this->fileService->storePhoto(data: $validated['photo'], location: 'advertisements');
             }
 
-            if ($advertisement->update($validated_data)) {
+            if ($advertisement->update($validated)) {
                 return $this->successResponse('success', 'Advertisement successfully updated!', 204);
             }
         } catch (Exception $e) {
@@ -114,9 +113,6 @@ class AdvertisementController extends Controller
     public function destroy(Advertisement $advertisement)
     {
         try {
-            if (!auth()->user()->is_admin) {
-                return $this->errorResponse('fail', 'Must Be Admin!', 403);
-            }
             $this->fileService->deletePhoto($advertisement->photo);
             $advertisement->delete();
 

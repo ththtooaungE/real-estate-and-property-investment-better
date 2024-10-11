@@ -12,12 +12,7 @@ class BoostCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
-    }
-
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Must Be Admin!');
+        return true;
     }
 
     /**
